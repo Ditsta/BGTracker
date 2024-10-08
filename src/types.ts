@@ -2,9 +2,10 @@ export interface Character {
   id: number
   name: string
   class: string
-  health: number
-  attack: number
-  defense: number
+  materials: { name: string; amount: number }[]
+  plants: { name: string; amount: number }[]
+  elements: { name: string; amount: number }[]
+  skills: { name: string; isLearned: boolean }[]
 }
 
 export interface Quest {

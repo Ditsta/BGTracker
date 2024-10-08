@@ -5,9 +5,10 @@ interface Character {
   id: number
   name: string
   class: string
-  health: number
-  attack: number
-  defense: number
+  materials: { name: string; amount: number }[]
+  plants: { name: string; amount: number }[]
+  elements: { name: string; amount: number }[]
+  skills: { name: string; isLearned: boolean }[]
 }
 
 interface CharacterTrackerProps {
@@ -20,19 +21,54 @@ const CharacterTracker: React.FC<CharacterTrackerProps> = ({ characters, setChar
   const [newCharacter, setNewCharacter] = useState<Omit<Character, 'id'>>({
     name: '',
     class: '',
-    health: 100,
-    attack: 10,
-    defense: 5
+    materials: [],
+    plants: [],
+    elements: [],
+    skills: [],
   })
 
   const addCharacter = () => {
     if (characters.length < 4) {
-      setCharacters([...characters, { ...newCharacter, id: Date.now() }])
-      setNewCharacter({ name: '', class: '', health: 100, attack: 10, defense: 5 })
+      // Add the character with default values for materials, plants, elements, and skills
+      setCharacters([...characters, { 
+        ...newCharacter, 
+        id: Date.now(),
+        materials: newCharacter.materials.length > 0 ? newCharacter.materials : [{ name: "bones", amount: 1 }],
+        plants: newCharacter.plants.length > 0 ? newCharacter.plants : [{ name: "nillea", amount: 2 }],
+        elements: newCharacter.elements.length > 0 ? newCharacter.elements : [{ name: "Fire", amount: 4 }],
+        skills: newCharacter.skills.length > 0 ? newCharacter.skills : [{ name: "A1", isLearned: false }]
+      }])
+  
+      // Reset newCharacter state after adding the character
+      setNewCharacter({ 
+        name: '', 
+        class: '', 
+        materials: [{ name: "bones", amount: 1 }], 
+        plants: [{ name: "nillea", amount: 2 }], 
+        elements: [{ name: "Fire", amount: 4 }], 
+        skills: [{ name: "A1", isLearned: false }]
+      })
     } else {
       alert('Maximum of 4 characters reached for this campaign.')
     }
   }
+
+  const modifyCharacterAmount = (characterId: number, type: 'materials' | 'plants' | 'elements', index: number, amountChange: number) => {
+    setCharacters((prevCharacters) =>
+      prevCharacters.map((character) =>
+        character.id === characterId
+          ? {
+              ...character,
+              [type]: character[type].map((item, itemIndex) =>
+                itemIndex === index
+                  ? { ...item, amount: Math.max(0, item.amount + amountChange) } // Ensure amount doesn't go below 0
+                  : item
+              ),
+            }
+          : character
+      )
+    );
+  };
 
   return (
     <div>
@@ -66,15 +102,66 @@ const CharacterTracker: React.FC<CharacterTrackerProps> = ({ characters, setChar
             <h3 className="text-lg font-semibold">{character.name}</h3>
             <p className="text-gray-600">{character.class}</p>
             <div className="mt-2">
-              <p className="flex items-center">
-                <Heart className="mr-2 text-red-500" /> Health: {character.health}
-              </p>
-              <p className="flex items-center">
-                <Sword className="mr-2 text-blue-500" /> Attack: {character.attack}
-              </p>
-              <p className="flex items-center">
-                <Shield className="mr-2 text-green-500" /> Defense: {character.defense}
-              </p>
+              {character.materials.map((material, materialIndex) => (
+              <div key={materialIndex} className="flex items-center">
+                <p>Material: {material.name} (Amount: {material.amount})</p>
+                <button
+                  className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
+                  onClick={() => modifyCharacterAmount(character.id, 'materials', materialIndex, 1)}
+                >
+                  +
+                </button>
+                <button
+                  className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
+                  onClick={() => modifyCharacterAmount(character.id, 'materials', materialIndex, -1)}
+                >
+                  -
+                </button>
+              </div>
+              ))}
+              
+              {character.plants.map((plant, plantIndex) => (
+                <div key={plantIndex} className="flex items-center">
+                  <p>Plant: {plant.name} (Amount: {plant.amount})</p>
+                  <button
+                    className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
+                    onClick={() => modifyCharacterAmount(character.id, 'plants', plantIndex, 1)}
+                  >
+                    +
+                  </button>
+                  <button
+                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
+                    onClick={() => modifyCharacterAmount(character.id, 'plants', plantIndex, -1)}
+                  >
+                    -
+                  </button>
+                </div>
+              ))}
+
+              {/* Elements */}
+              {character.elements.map((element, elementIndex) => (
+                    <div key={elementIndex} className="flex items-center">
+                      <p>Element: {element.name} (Amount: {element.amount})</p>
+                      <button
+                        className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
+                        onClick={() => modifyCharacterAmount(character.id, 'elements', elementIndex, 1)}
+                      >
+                        +
+                      </button>
+                      <button
+                        className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
+                        onClick={() => modifyCharacterAmount(character.id, 'elements', elementIndex, -1)}
+                      >
+                        -
+                      </button>
+                    </div>
+                    ))}
+
+              {character.skills.map((skill, index) => (
+                <p key={index} className="flex items-center">
+                  Skill: {skill.name} (Learned: {skill.isLearned ? 'Yes' : 'No'})
+                </p>
+              ))}
             </div>
           </div>
         ))}
